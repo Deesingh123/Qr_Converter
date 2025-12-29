@@ -1,0 +1,6 @@
+{
+  "output_folder": "output",
+  "qr_length": 10,
+  "cooldown_seconds": 2,
+  "printer_enabled": true
+}
