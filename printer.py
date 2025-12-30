@@ -4,11 +4,12 @@ from PIL import Image, ImageWin
 
 def has_real_printer():
     try:
-        printer = win32print.GetDefaultPrinter().lower()
-        virtual = ["pdf", "onenote", "xps"]
-        return not any(v in printer for v in virtual)
+        printer = win32print.GetDefaultPrinter()
+        blocked = ["pdf", "onenote", "xps"]
+        return not any(b in printer.lower() for b in blocked)
     except:
         return False
+
 
 def print_qr(image_path):
     if not has_real_printer():

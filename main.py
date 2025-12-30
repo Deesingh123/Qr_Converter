@@ -9,6 +9,7 @@ from qr_generator import generate_qr
 from printer import print_qr
 
 
+# ---------------- RESOURCE PATH (for EXE support) ---------------- #
 def resource_path(relative):
     try:
         base = sys._MEIPASS
@@ -17,6 +18,7 @@ def resource_path(relative):
     return os.path.join(base, relative)
 
 
+# ---------------- LOAD CONFIG ---------------- #
 with open(resource_path("config.json")) as f:
     config = json.load(f)
 
@@ -30,6 +32,7 @@ last_text = ""
 last_input_time = 0
 
 
+# ---------------- CONTROL FUNCTIONS ---------------- #
 def start():
     global running
     running = True
@@ -61,6 +64,7 @@ def processing_loop():
         if not text:
             continue
 
+        # cooldown (scanner finished typing)
         if time.time() - last_input_time < COOLDOWN:
             continue
 
@@ -75,42 +79,107 @@ def processing_loop():
             continue
 
         try:
-            qr_path = generate_qr(text, OUTPUT_FOLDER)
+            qr_path = generate_qr(text, text)
 
             if PRINT_ENABLED:
                 print_qr(qr_path)
 
             last_text = text
-            status.set("Status: QR Generated")
+            status.set("Status: QR Generated Successfully")
             entry.delete(0, tk.END)
 
         except Exception as e:
             status.set(f"Error: {e}")
 
 
-# ---------------- GUI ---------------- #
-
+# ======================= GUI ======================= #
 root = tk.Tk()
 root.title("Industrial QR Generator")
-root.geometry("420x280")
+root.geometry("900x520")
+root.configure(bg="#f2f4f6")
+root.resizable(True, True)
 
-tk.Label(root, text="Industrial QR Generator",
-         font=("Arial", 16, "bold")).pack(pady=10)
 
-tk.Label(root, text="Scan barcode or type text below:").pack()
+# ---------------- HEADER ---------------- #
+tk.Label(
+    root,
+    text="QR Generator",
+    font=("Segoe UI", 22, "bold"),
+    fg="#1f2933",
+    bg="#f2f4f6"
+).pack(pady=20)
 
-entry = tk.Entry(root, font=("Arial", 14), width=30)
-entry.pack(pady=10)
+
+tk.Label(
+    root,
+    text="Scan barcode or type text below:",
+    font=("Segoe UI", 12),
+    fg="#374151",
+    bg="#f2f4f6"
+).pack()
+
+
+# ---------------- INPUT ---------------- #
+entry = tk.Entry(
+    root,
+    font=("Consolas", 20),
+    width=32,
+    relief="solid",
+    bd=1
+)
+entry.pack(pady=16)
 entry.bind("<KeyRelease>", on_key_release)
 
+
+# ---------------- STATUS ---------------- #
 status = tk.StringVar(value="Status: Stopped")
-tk.Label(root, textvariable=status, fg="blue").pack(pady=5)
+tk.Label(
+    root,
+    textvariable=status,
+    fg="#2563eb",
+    bg="#f2f4f6",
+    font=("Segoe UI", 12, "bold")
+).pack(pady=10)
 
-tk.Button(root, text="Start", bg="green", fg="white",
-          font=("Arial", 12), command=start).pack(fill="x", padx=50, pady=5)
 
-tk.Button(root, text="Stop", bg="red", fg="white",
-          font=("Arial", 12), command=stop).pack(fill="x", padx=50)
+# ---------------- BUTTONS ---------------- #
+tk.Button(
+    root,
+    text="START",
+    bg="#15803d",
+    fg="white",
+    font=("Segoe UI", 14, "bold"),
+    height=2,
+    activebackground="#166534",
+    command=start
+).pack(fill="x", padx=160, pady=(20, 10))
 
+
+tk.Button(
+    root,
+    text="STOP",
+    bg="#b91c1c",
+    fg="white",
+    font=("Segoe UI", 14, "bold"),
+    height=2,
+    activebackground="#7f1d1d",
+    command=stop
+).pack(fill="x", padx=160)
+
+
+# ---------------- FOOTER ---------------- #
+footer = tk.Frame(root, bg="#1f2933", height=38)
+footer.pack(side="bottom", fill="x")
+
+tk.Label(
+    footer,
+    text="Powered by DSAi",
+    fg="#e5e7eb",
+    bg="#1f2933",
+    font=("Segoe UI", 12)
+).pack(pady=8)
+
+
+# ---------------- THREAD ---------------- #
 threading.Thread(target=processing_loop, daemon=True).start()
 root.mainloop()
