@@ -9,18 +9,27 @@ from qr_generator import generate_qr
 from printer import print_qr
 
 
+
 # ---------------- RESOURCE PATH (for EXE support) ---------------- #
-def resource_path(relative):
+def resource_path(relative_path):
+    """
+    Get absolute path to resource, works for dev and PyInstaller exe
+    """
     try:
-        base = sys._MEIPASS
-    except:
-        base = os.path.abspath(".")
-    return os.path.join(base, relative)
+        base_path = sys._MEIPASS  # temp folder for exe
+    except AttributeError:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 
 
 # ---------------- LOAD CONFIG ---------------- #
-with open(resource_path("config.json")) as f:
+config_path = resource_path("config.json")
+
+with open(config_path, "r") as f:
     config = json.load(f)
+
 
 QR_LENGTH = config["qr_length"]
 COOLDOWN = config["cooldown_seconds"]
